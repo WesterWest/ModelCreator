@@ -1,0 +1,18 @@
+﻿<Window x:Class="ModelCreator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ModelCreator"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="720
+        " Width="1600">
+    <Grid>
+        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="669" Margin="10,10,0,0" VerticalAlignment="Top" Width="984"/>
+        <Button x:Name="magicButton_button" Content="Generate!" HorizontalAlignment="Left" Height="62" Margin="999,617,0,0" VerticalAlignment="Top" Width="175" Click="magicButton_Click" FontSize="24"/>
+        <Button x:Name="createPart_button" Content="Create part" HorizontalAlignment="Left" Margin="1179,659,0,0" VerticalAlignment="Top" Width="75"/>
+        <TextBox x:Name="name_textBox" HorizontalAlignment="Left" Height="18" Margin="999,47,0,0" TextWrapping="Wrap" Text="Name" VerticalAlignment="Top" Width="583"/>
+        <Label x:Name="name_label" Content="Name" HorizontalAlignment="Left" Height="32" Margin="999,10,0,0" VerticalAlignment="Top" Width="80"/>
+
+    </Grid>
+</Window>
