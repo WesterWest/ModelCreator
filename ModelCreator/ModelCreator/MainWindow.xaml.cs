@@ -57,11 +57,21 @@ namespace ModelCreator
                 {
                     StackPanel stackPanel = new StackPanel();
                     stackPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    stackPanel.Width = corners_stackPanel.Width;
                     stackPanel.Orientation = Orientation.Horizontal;
 
                     CleverBox angle_textBox = new CleverBox();
                     CleverBox length_textBox = new CleverBox();
-                    CleverBox joints_textBox = new CleverBox();
+                    CleverBox joints_textBox = new CleverBox();                    
+
+                    angle_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    length_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    joints_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+
+                    angle_textBox.TransformToAncestor(stackPanel);// = (corners_stackPanel.Width / 3);
+                    length_textBox.TransformToAncestor(stackPanel);//length_textBox.Size = new corners_stackPanel.Width / 3);
+                    joints_textBox.TransformToAncestor(stackPanel);//joints_textBox.Width = (corners_stackPanel.Width / 3);
+
 
                     stackPanel.Children.Add(angle_textBox);
                     stackPanel.Children.Add(length_textBox);
