@@ -20,16 +20,64 @@ namespace ModelCreator
     /// </summary>
     public partial class MainWindow : Window
     {
+        private List<Part> parts = new List<Part>();
+        private int partIndex = 0;
         public MainWindow()
         {
+            parts.Add(new Part());
             InitializeComponent();
+            sides_textBox.ContentChanged += UpdateSides;
+        }
+
+
+        
+        private void magicButton_Click(object sender, RoutedEventArgs e)
+        {
 
 
         }
 
-        private void magicButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateSides(TextBox txBx)
         {
+            int sidesParsed;
+            if (int.TryParse(txBx.Text, out sidesParsed) && sidesParsed > 2)
+            {
+                parts[partIndex].Sides = sidesParsed;
+            }
+            else
+            {
+                parts[partIndex].Sides = 3;
+                txBx.Text = "3";
+            }
 
+            
+            for(int i = 0; i < Math.Abs(sidesParsed - corners_stackPanel.Children.Count); i++)
+            {
+                if (sidesParsed - corners_stackPanel.Children.Count > 0)
+                {
+                    StackPanel stackPanel = new StackPanel();
+                    stackPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    stackPanel.Orientation = Orientation.Horizontal;
+
+                    CleverBox angle_textBox = new CleverBox();
+                    CleverBox length_textBox = new CleverBox();
+                    CleverBox joints_textBox = new CleverBox();
+
+                    stackPanel.Children.Add(angle_textBox);
+                    stackPanel.Children.Add(length_textBox);
+                    stackPanel.Children.Add(joints_textBox);
+
+                    corners_stackPanel.Children.Add(stackPanel);
+                }
+                else
+                {
+
+                }
+            }
+        }
+
+        private void sides_textBox_ContentChanged(string obj)
+        {
 
         }
     }

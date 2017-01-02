@@ -8,11 +8,24 @@
         Title="MainWindow" Height="720
         " Width="1600">
     <Grid>
-        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="659" Margin="168,10,0,0" VerticalAlignment="Top" Width="826"/>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FFC1C1C1" Offset="0"/>
+                <GradientStop Color="White" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="659" Margin="168,10,0,0" VerticalAlignment="Top" Width="826" Background="White"/>
         <Button x:Name="magicButton_button" Content="Generate!" HorizontalAlignment="Left" Height="62" Margin="999,596,0,0" VerticalAlignment="Top" Width="175" Click="magicButton_Click" FontSize="24"/>
         <Button x:Name="createPart_button" Content="Create part" HorizontalAlignment="Left" Margin="1507,638,0,0" VerticalAlignment="Top" Width="75"/>
         <TextBox x:Name="name_textBox" HorizontalAlignment="Left" Height="18" Margin="999,47,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="583"/>
-        <Label x:Name="name_label" Content="Name" HorizontalAlignment="Left" Height="32" Margin="999,10,0,0" VerticalAlignment="Top" Width="80"/>
+        <Label x:Name="name_label" Content="Name" HorizontalAlignment="Left" Height="25" Margin="999,17,0,0" VerticalAlignment="Top" Width="80"/>
+        <Label x:Name="texture_label" Content="Texture" HorizontalAlignment="Left" Height="24" Margin="999,74,0,0" VerticalAlignment="Top" Width="80"/>
+        <TextBox x:Name="texture_textBox" HorizontalAlignment="Left" Height="21" Margin="999,103,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="274"/>
+        <Label x:Name="sides_label" Content="Number of sides" HorizontalAlignment="Left" Height="24" Margin="1318,74,0,0" VerticalAlignment="Top" Width="97"/>
+        <local:CleverBox x:Name="sides_textBox" HorizontalAlignment="Left" Height="21" Margin="1318,103,0,0" VerticalAlignment="Top" Width="264"/>
+        <ScrollViewer x:Name="corners_scrollViewer" HorizontalAlignment="Left" Height="249" Margin="1318,157,0,0" VerticalAlignment="Top" Width="264">
+            <StackPanel x:Name="corners_stackPanel"/>
+        </ScrollViewer>
 
     </Grid>
 </Window>
