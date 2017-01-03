@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xceed.Wpf.Toolkit;
 
 namespace ModelCreator
 {
@@ -32,6 +33,7 @@ namespace ModelCreator
 
         
         private void magicButton_Click(object sender, RoutedEventArgs e)
+
         {
 
 
@@ -50,45 +52,94 @@ namespace ModelCreator
                 txBx.Text = "3";
             }
 
-            
-            for(int i = 0; i < Math.Abs(sidesParsed - corners_stackPanel.Children.Count); i++)
-            {
-                if (sidesParsed - corners_stackPanel.Children.Count > 0)
-                {
-                    StackPanel stackPanel = new StackPanel();
-                    stackPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    stackPanel.Width = corners_stackPanel.Width;
-                    stackPanel.Orientation = Orientation.Horizontal;
+            Boolean addMode = sidesParsed - corners_stackPanel.Children.Count > 0;
 
-                    CleverBox angle_textBox = new CleverBox();
-                    CleverBox length_textBox = new CleverBox();
-                    CleverBox joints_textBox = new CleverBox();                    
+            int timesRun = Math.Abs(sidesParsed - corners_stackPanel.Children.Count);
+
+            for (int i = 0; i < timesRun; i++)
+            {
+                if (addMode)
+                {
+                    Grid grid = new Grid();
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+
+                    DoubleUpDown angle_textBox = new DoubleUpDown();
+                    DoubleUpDown length_textBox = new DoubleUpDown();
+                    IntegerUpDown joints_textBox = new IntegerUpDown();
+
+                    angle_textBox.ValueChanged += (penis, args) => 
+                    {
+                        UpdatePolygon();
+                    };
+                    length_textBox.ValueChanged += (kana, args) =>
+                    {
+                        UpdatePolygon();
+                    };
+                    joints_textBox.ValueChanged += (john_cena, args) =>
+                    {
+                        UpdatePolygon();
+                    };
 
                     angle_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
                     length_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
                     joints_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
 
-                    angle_textBox.TransformToAncestor(stackPanel);// = (corners_stackPanel.Width / 3);
-                    length_textBox.TransformToAncestor(stackPanel);//length_textBox.Size = new corners_stackPanel.Width / 3);
-                    joints_textBox.TransformToAncestor(stackPanel);//joints_textBox.Width = (corners_stackPanel.Width / 3);
+                    Grid.SetColumn(angle_textBox, 0);
+                    Grid.SetColumn(length_textBox, 1);
+                    Grid.SetColumn(joints_textBox, 2);
 
+                    angle_textBox.Value = 30;
+                    length_textBox.Value = 50;
+                    joints_textBox.Value = 0;
 
-                    stackPanel.Children.Add(angle_textBox);
-                    stackPanel.Children.Add(length_textBox);
-                    stackPanel.Children.Add(joints_textBox);
+                    grid.Children.Add(angle_textBox);
+                    grid.Children.Add(length_textBox);
+                    grid.Children.Add(joints_textBox);
 
-                    corners_stackPanel.Children.Add(stackPanel);
+                    corners_stackPanel.Children.Add(grid);
                 }
                 else
                 {
-
+                    corners_stackPanel.Children.RemoveAt(corners_stackPanel.Children.Count - 1);
                 }
             }
         }
 
-        private void sides_textBox_ContentChanged(string obj)
+        private void UpdatePolygon()
         {
+            List<float> angles = new List<float>();
+            List<int> joints = new List<int>();
+            List<float> lengths = new List<float>();
 
-        }
+            foreach (UIElement element in corners_stackPanel.Children)
+            {
+                Grid grid = (Grid)element;
+                DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
+                DoubleUpDown length = (DoubleUpDown)grid.Children[1];
+                IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
+                angles.Add((float)angle.Value);
+                joints.Add((int)joint.Value);
+                lengths.Add((float)length.Value);
+                
+            }
+
+            parts[partIndex].setAnglesJointsLengths(angles.Count, angles.ToArray(), lengths.ToArray(), joints.ToArray());
+
+            Grid gridLast = (Grid)corners_stackPanel.Children[corners_stackPanel.Children.Count - 1];
+
+            DoubleUpDown angleLast = (DoubleUpDown)gridLast.Children[0];
+            DoubleUpDown lengthLast = (DoubleUpDown)gridLast.Children[1];
+            IntegerUpDown jointLast = (IntegerUpDown)gridLast.Children[2];
+
+            Vector2 firstVector = parts[partIndex].Vertices[1];
+            Vector2 secondVector = parts[partIndex].Vertices.Last();
+
+            angleLast.Value = 
+
+            canvas.Children.Clear();
+            canvas.Children.Add(parts[partIndex].getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2)));
+        } 
     }
 }
