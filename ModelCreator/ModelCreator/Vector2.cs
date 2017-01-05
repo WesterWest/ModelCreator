@@ -29,5 +29,10 @@ namespace ModelCreator
             X = x;
             Y = y;
         }
+
+        public static Vector2 operator - (Vector2 first, Vector2 second)
+        {
+            return new Vector2(first.X - second.X, first.Y - second.Y);
+        }
     }
 }

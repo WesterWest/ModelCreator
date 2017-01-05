@@ -66,8 +66,11 @@ namespace ModelCreator
                     grid.ColumnDefinitions.Add(new ColumnDefinition());
 
                     DoubleUpDown angle_textBox = new DoubleUpDown();
+                    angle_textBox.DefaultValue = 0;
                     DoubleUpDown length_textBox = new DoubleUpDown();
+                    length_textBox.DefaultValue = 0;
                     IntegerUpDown joints_textBox = new IntegerUpDown();
+                    joints_textBox.DefaultValue = 0;
 
                     angle_textBox.ValueChanged += (penis, args) => 
                     {
@@ -122,24 +125,37 @@ namespace ModelCreator
                 angles.Add((float)angle.Value);
                 joints.Add((int)joint.Value);
                 lengths.Add((float)length.Value);
-                
             }
 
-            parts[partIndex].setAnglesJointsLengths(angles.Count, angles.ToArray(), lengths.ToArray(), joints.ToArray());
+            parts[partIndex].setAnglesJointsLengths(angles.Count, angles.ToArray(), lengths.ToArray(), joints);
 
-            Grid gridLast = (Grid)corners_stackPanel.Children[corners_stackPanel.Children.Count - 1];
 
-            DoubleUpDown angleLast = (DoubleUpDown)gridLast.Children[0];
-            DoubleUpDown lengthLast = (DoubleUpDown)gridLast.Children[1];
-            IntegerUpDown jointLast = (IntegerUpDown)gridLast.Children[2];
+            if (corners_stackPanel.Children.Count > 0 && parts[partIndex].Vertices.Count > 2)
+            {
+                Grid gridLast = (Grid)corners_stackPanel.Children[corners_stackPanel.Children.Count - 1];
 
-            Vector2 firstVector = parts[partIndex].Vertices[1];
-            Vector2 secondVector = parts[partIndex].Vertices.Last();
+                DoubleUpDown angleLast = (DoubleUpDown)gridLast.Children[0];
+                DoubleUpDown lengthLast = (DoubleUpDown)gridLast.Children[1];
+                IntegerUpDown jointLast = (IntegerUpDown)gridLast.Children[2];
 
-            angleLast.Value = 
-
+                Vector2 firstVector = parts[partIndex].Vertices[1];
+                Vector2 secondVector = parts[partIndex].Vertices.Last();
+            }
+                        
             canvas.Children.Clear();
             canvas.Children.Add(parts[partIndex].getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2)));
+            foreach(Vector2 local in parts[partIndex].DrawJoints)
+            {
+                Ellipse ellipse = new Ellipse();
+                ellipse.Stroke = Brushes.Red;
+                ellipse.StrokeThickness = 2;
+                ellipse.Width = 5;
+                ellipse.Height = 5;
+                ellipse.Fill = Brushes.Red;
+                ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
+                canvas.Children.Add(ellipse);
+            }
+            
         } 
     }
 }
