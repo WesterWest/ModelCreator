@@ -44,12 +44,12 @@ namespace ModelCreator
             int sidesParsed;
             if (int.TryParse(txBx.Text, out sidesParsed) && sidesParsed > 2)
             {
-                parts[partIndex].Sides = sidesParsed;
+                UpdatePolygon();
             }
             else
             {
-                parts[partIndex].Sides = 3;
                 txBx.Text = "3";
+                UpdatePolygon();
             }
 
             Boolean addMode = sidesParsed - corners_stackPanel.Children.Count > 0;

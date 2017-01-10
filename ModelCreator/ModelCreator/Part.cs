@@ -10,7 +10,6 @@ namespace ModelCreator
 {
     class Part
     {
-        public int Sides;
         public List<Vector2> Vertices = new List<Vector2>();
         public List<Vector2> UVs = new List<Vector2>();
         public List<Vector2> DrawJoints = new List<Vector2>();
@@ -31,7 +30,6 @@ namespace ModelCreator
 
         public void setAnglesJointsLengths(int numberOfSides, float[] angles, float[] lengths, List<int> joints)
         {
-            Sides = numberOfSides;
             Vertices.Clear();
             Vertices.Add(new Vector2());
             float lastAngle = 0;
@@ -45,7 +43,15 @@ namespace ModelCreator
                 float ratio = lengths[i] / directionalVectorLength;
 
                 lastVector2 = new Vector2(directionalVector.X * ratio + lastVector2.X, directionalVector.Y * ratio + lastVector2.Y);
-                Vertices.Add(lastVector2);
+
+                if (i == numberOfSides -1 && Math.Round(lastVector2.X) == 0 && Math.Round(lastVector2.Y) == 0)
+                {
+
+                }
+                else
+                {
+                    Vertices.Add(lastVector2);
+                }
 
                 lastAngle += angles[i];
             }
@@ -63,8 +69,8 @@ namespace ModelCreator
                 else
                     nextLocal = Vertices[i + 1];
                 Vector2 dif = nextLocal - local;
-                Vector2 onePeace = new Vector2(dif.X / (joints[i] + 1) , dif.Y / (joints[i] + 1));
-                for(int jointNumber = 0; jointNumber < joints[i]; jointNumber++)
+                Vector2 onePeace = new Vector2(dif.X / (joints[i] + 1), dif.Y / (joints[i] + 1));
+                for (int jointNumber = 0; jointNumber < joints[i]; jointNumber++)
                 {
                     DrawJoints.Add(new Vector2(onePeace.X * (jointNumber + 1) + local.X, onePeace.Y * (jointNumber + 1) + local.Y));
                 }
