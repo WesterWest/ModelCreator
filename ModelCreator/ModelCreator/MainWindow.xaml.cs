@@ -13,6 +13,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xceed.Wpf.Toolkit;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace ModelCreator
 {
@@ -33,10 +36,88 @@ namespace ModelCreator
 
         
         private void magicButton_Click(object sender, RoutedEventArgs e)
-
         {
+            
+        }
+
+        private void loadButton_Click(object sender, RoutedEventArgs e)
+        {
+            parts.Clear();
+            JObject jObject = JObject.Parse(File.ReadAllText(path_textBox.Text));
+            name_textBox.Text = JSONUtil.ReadProperty<string>(jObject, "name");
+            JArray jParts = JSONUtil.ReadArray(jObject, "parts");
+            foreach (JToken partToken in jParts)
+            {
+                JObject partObject = (JObject)partToken;
+
+                JArray jVertices = JSONUtil.ReadArray(partObject, "vertices");
+                Vector2[] vertices = new Vector2[jVertices.Count];
+                int vertexIndex = 0;
+                foreach (JToken jVertex in jVertices)
+                {
+                    JArray coords = (JArray)jVertex;
+                    vertices[vertexIndex] = new Vector2(
+                        Newtonsoft.Json.Linq.Extensions.Value<float>(coords[0]),
+                        Newtonsoft.Json.Linq.Extensions.Value<float>(coords[1]));
+                    vertexIndex++;
+                }
+                
+
+                JArray juvs = JSONUtil.ReadArray(partObject, "uvs");
+                Vector2[] uvs = new Vector2[juvs.Count];
+                int uvIndex = 0;
+                foreach (JToken juv in juvs)
+                {
+                    JArray coords = (JArray)juv;
+                    uvs[uvIndex] = new Vector2(Newtonsoft.Json.Linq.Extensions.Value<float>(coords[0]),
+                        Newtonsoft.Json.Linq.Extensions.Value<float>(coords[1]));
+                    uvIndex++;
+                }
+
+                JArray jJoints = JSONUtil.ReadArray(partObject, "joints");
+                int[] joints = new int[jJoints.Count];
+                int jointIndex = 0;
+                foreach (JToken jJoint in jJoints)
+                {
+                    joints[jointIndex] = Newtonsoft.Json.Linq.Extensions.Value<int>(jJoint);
+                    jointIndex++;
+                }
+
+                Part part = new Part();
+                part.setFromJSON(vertices, uvs, joints);
+
+                parts.Add(part);
+
+                sides_textBox.Text = jVertices.Count.ToString();
+
+                int i = 0;
+                foreach (UIElement element in corners_stackPanel.Children)
+                {
+                    Grid grid = (Grid)element;
+                    DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
+                    DoubleUpDown length = (DoubleUpDown)grid.Children[1];
+                    IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
+                    angle.Value = part.Angles[i];
+                    length.Value = part.Lengths[i];
+                    joint.Value = part.Joints[i];
+                    i++;
+                }
 
 
+                canvas.Children.Clear();
+                canvas.Children.Add(parts[partIndex].getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2)));
+                foreach (Vector2 local in parts[partIndex].DrawJoints)
+                {
+                    Ellipse ellipse = new Ellipse();
+                    ellipse.Stroke = Brushes.Red;
+                    ellipse.StrokeThickness = 2;
+                    ellipse.Width = 5;
+                    ellipse.Height = 5;
+                    ellipse.Fill = Brushes.Red;
+                    ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
+                    canvas.Children.Add(ellipse);
+                }
+            }
         }
 
         private void UpdateSides(TextBox txBx)

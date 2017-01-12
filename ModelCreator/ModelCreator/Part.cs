@@ -13,6 +13,9 @@ namespace ModelCreator
         public List<Vector2> Vertices = new List<Vector2>();
         public List<Vector2> UVs = new List<Vector2>();
         public List<Vector2> DrawJoints = new List<Vector2>();
+        public List<int> Joints = new List<int>();
+        public List<float> Angles = new List<float>();
+        public List<float> Lengths = new List<float>();
         public Vector2 Relative;
         public Boolean Collide;
 
@@ -44,7 +47,7 @@ namespace ModelCreator
 
                 lastVector2 = new Vector2(directionalVector.X * ratio + lastVector2.X, directionalVector.Y * ratio + lastVector2.Y);
 
-                if (i == numberOfSides -1 && Math.Round(lastVector2.X) == 0 && Math.Round(lastVector2.Y) == 0)
+                if (i == numberOfSides - 1 && Math.Round(lastVector2.X) == 0 && Math.Round(lastVector2.Y) == 0)
                 {
 
                 }
@@ -74,6 +77,30 @@ namespace ModelCreator
                 {
                     DrawJoints.Add(new Vector2(onePeace.X * (jointNumber + 1) + local.X, onePeace.Y * (jointNumber + 1) + local.Y));
                 }
+            }
+        }
+
+        public void setFromJSON(Vector2[] coords, Vector2[] uvs, int[] joints)
+        {
+            Vertices.Clear();
+            UVs.Clear();
+            Joints.Clear();
+
+
+            Vertices.AddRange(coords);
+            UVs.AddRange(uvs);
+            Joints.AddRange(joints);
+
+
+            for (int i = 0; i < Vertices.Count; i++)
+            {
+                Vector2 vec1 = coords.noOutOfBounds(i) - coords.noOutOfBounds(i + 1);
+
+                Lengths.Add((float)Math.Sqrt(Math.Pow(vec1.X, 2) + Math.Pow(vec1.Y, 2)));
+
+                Vector2 vec2 = coords.noOutOfBounds(i + 1) - coords.noOutOfBounds(i + 2);
+
+                Angles.Add(VectorUtil.AngleBetweenVector2(vec1, vec2));
             }
         }
     }

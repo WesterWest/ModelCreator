@@ -38,5 +38,15 @@ namespace ModelCreator
         {
             ContentChanged?.Invoke(textBox);
         }
+
+        public String Text
+        {
+            get {return textBox.Text;}
+            set
+            {
+                textBox.Text = value;
+                ContentChanged?.Invoke(textBox);
+            }
+        }
     }
 }

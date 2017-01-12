@@ -37,6 +37,8 @@
             <Label x:Name="label_Copy1" Content="Joints" Width="88" Grid.Column="2"/>
         </Grid>
         <Label x:Name="STFU" Content="If triangle last angle is 180 - wanted angle" Margin="0,0,10,10" Height="26" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="238"/>
+        <Button x:Name="loadButton_button_Copy" Content="Load" HorizontalAlignment="Left" Height="22" Margin="999,544,0,0" VerticalAlignment="Top" Width="175" Click="loadButton_Click"/>
+        <TextBox x:Name="path_textBox" HorizontalAlignment="Left" Height="22" Margin="1179,544,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="403"/>
 
     </Grid>
 </Window>
