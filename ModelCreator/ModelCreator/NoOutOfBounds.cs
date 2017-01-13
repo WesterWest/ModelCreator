@@ -10,7 +10,7 @@ namespace ModelCreator
     {
         public static T noOutOfBounds<T>(this T[] input, int index)
         {
-            index %= input.Length - 1;
+            index %= input.Length;
 
             return input[index];
         }

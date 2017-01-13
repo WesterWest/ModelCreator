@@ -16,6 +16,8 @@ using Xceed.Wpf.Toolkit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
 
 namespace ModelCreator
 {
@@ -24,25 +26,60 @@ namespace ModelCreator
     /// </summary>
     public partial class MainWindow : Window
     {
-        private List<Part> parts = new List<Part>();
+        private ObservableCollection<Part> parts = new ObservableCollection<Part>();
         private int partIndex = 0;
         public MainWindow()
         {
-            parts.Add(new Part());
             InitializeComponent();
+            partList_listView.ItemsSource = parts;
+            partList_listView.SelectionChanged += (kana, windowsJeSracka) => changeSelected((Part)partList_listView.SelectedItem);
+            addPart(new Part());
             sides_textBox.ContentChanged += UpdateSides;
+            /*
+            Vector2 vec1 = new Vector2(1, 0);
+            Vector2 vec2 = new Vector2(0.2f, 1);
+            float solution = VectorUtil.AngleBetweenVector2(vec1, vec2);
+            */
         }
 
 
-        
+
         private void magicButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            JObject jObject = new JObject();
+            jObject.Add("name", name_textBox.Text);
+            JArray partsArray = new JArray();
+            foreach (Part part in parts)
+            {
+                JObject JPart = new JObject();
+                JArray JVertices = JArraySerializer.SerializeVector2(part.Vertices);
+                JArray JJoints = JArraySerializer.SerializeIntegeer(part.Joints);
+                JArray JUVs = JArraySerializer.SerializeVector2(part.UVs);
+
+                JPart.Add("vertices", JVertices);
+                JPart.Add("uvs", JUVs);
+                JPart.Add("joints", JJoints);
+                partsArray.Add(JPart);
+            }
+
+            jObject.Add("parts", partsArray);
+
+            JsonSerializer serializer = new JsonSerializer();
+
+            using (StreamWriter sw = new StreamWriter(path_textBox.Text))
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                serializer.Serialize(writer, jObject);
+            }
         }
 
         private void loadButton_Click(object sender, RoutedEventArgs e)
         {
-            parts.Clear();
+            foreach (Part part in parts.ToList())
+            {
+                removePart(part);
+            }
+
             JObject jObject = JObject.Parse(File.ReadAllText(path_textBox.Text));
             name_textBox.Text = JSONUtil.ReadProperty<string>(jObject, "name");
             JArray jParts = JSONUtil.ReadArray(jObject, "parts");
@@ -61,7 +98,6 @@ namespace ModelCreator
                         Newtonsoft.Json.Linq.Extensions.Value<float>(coords[1]));
                     vertexIndex++;
                 }
-                
 
                 JArray juvs = JSONUtil.ReadArray(partObject, "uvs");
                 Vector2[] uvs = new Vector2[juvs.Count];
@@ -86,7 +122,7 @@ namespace ModelCreator
                 Part part = new Part();
                 part.setFromJSON(vertices, uvs, joints);
 
-                parts.Add(part);
+                addPart(part);
 
                 sides_textBox.Text = jVertices.Count.ToString();
 
@@ -153,7 +189,7 @@ namespace ModelCreator
                     IntegerUpDown joints_textBox = new IntegerUpDown();
                     joints_textBox.DefaultValue = 0;
 
-                    angle_textBox.ValueChanged += (penis, args) => 
+                    angle_textBox.ValueChanged += (penis, args) =>
                     {
                         UpdatePolygon();
                     };
@@ -222,21 +258,70 @@ namespace ModelCreator
                 Vector2 firstVector = parts[partIndex].Vertices[1];
                 Vector2 secondVector = parts[partIndex].Vertices.Last();
             }
-                        
+
+            rerenderParts();
+
+        }
+
+        private void rerenderParts()
+        {
             canvas.Children.Clear();
-            canvas.Children.Add(parts[partIndex].getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2)));
-            foreach(Vector2 local in parts[partIndex].DrawJoints)
+            foreach (Part part in parts)
             {
-                Ellipse ellipse = new Ellipse();
-                ellipse.Stroke = Brushes.Red;
-                ellipse.StrokeThickness = 2;
-                ellipse.Width = 5;
-                ellipse.Height = 5;
-                ellipse.Fill = Brushes.Red;
-                ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
-                canvas.Children.Add(ellipse);
+                Polygon polygon = part.getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2));
+
+                if (part == parts[partIndex])
+                    polygon.Stroke = Brushes.Coral;
+                else
+                    polygon.Stroke = Brushes.Black;
+
+                canvas.Children.Add(polygon);
+
+                foreach (Vector2 local in part.DrawJoints)
+                {
+                    Ellipse ellipse = new Ellipse();
+                    ellipse.Stroke = Brushes.Red;
+                    ellipse.StrokeThickness = 2;
+                    ellipse.Width = 5;
+                    ellipse.Height = 5;
+                    ellipse.Fill = Brushes.Red;
+                    ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
+                    canvas.Children.Add(ellipse);
+                }
             }
-            
-        } 
+        }
+
+        private void fileSelector_button_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.InitialDirectory = @"F:\OneDrive\Documents\GitHub\Kana\Assets\VanillaModule\models";
+            dialog.Filter = "model JSON file (*.json)|*.JSON";
+            if (dialog.ShowDialog().Value)
+            {
+                path_textBox.Text = dialog.FileName;
+                loadButton_Click(null, null);
+            }
+        }
+
+        private void addPart(Part part)
+        {
+            parts.Add(part);
+        }
+
+        private void removePart(Part part)
+        {
+            parts.Remove(part);
+        }
+
+        private void changeSelected(Part part)
+        {
+            partIndex = parts.IndexOf(part);
+            rerenderParts();
+        }
+
+        private void addPart_button_Click(object sender, RoutedEventArgs e)
+        {
+            addPart(new Part());
+        }
     }
 }

@@ -26,13 +26,15 @@ namespace ModelCreator
             polygon.StrokeThickness = 3;
             foreach (Vector2 vector in Vertices)
             {
-                polygon.Points.Add(new System.Windows.Point(vector.X + offset.X, vector.Y + offset.Y));
+                polygon.Points.Add(new System.Windows.Point(vector.X * 50 + offset.X, vector.Y * 50 + offset.Y));
             }
             return polygon;
         }
 
         public void setAnglesJointsLengths(int numberOfSides, float[] angles, float[] lengths, List<int> joints)
         {
+            Joints = joints;
+            UVs = Enumerable.Repeat(new Vector2(), angles.Length).ToList();
             Vertices.Clear();
             Vertices.Add(new Vector2());
             float lastAngle = 0;
@@ -87,18 +89,17 @@ namespace ModelCreator
             Joints.Clear();
 
 
-            Vertices.AddRange(coords);
             UVs.AddRange(uvs);
             Joints.AddRange(joints);
 
 
-            for (int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < coords.Length; i++)
             {
                 Vector2 vec1 = coords.noOutOfBounds(i) - coords.noOutOfBounds(i + 1);
 
                 Lengths.Add((float)Math.Sqrt(Math.Pow(vec1.X, 2) + Math.Pow(vec1.Y, 2)));
 
-                Vector2 vec2 = coords.noOutOfBounds(i + 1) - coords.noOutOfBounds(i + 2);
+                Vector2 vec2 = coords.noOutOfBounds(i + 2) - coords.noOutOfBounds(i + 1);
 
                 Angles.Add(VectorUtil.AngleBetweenVector2(vec1, vec2));
             }
