@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -10,33 +11,54 @@ namespace ModelCreator
 {
     class Part
     {
-        public List<Vector2> Vertices = new List<Vector2>();
-        public List<Vector2> UVs = new List<Vector2>();
-        public List<Vector2> DrawJoints = new List<Vector2>();
-        public List<int> Joints = new List<int>();
-        public List<float> Angles = new List<float>();
-        public List<float> Lengths = new List<float>();
-        public Vector2 Relative;
-        public Boolean Collide;
+        public const float GUI_SCALE_FACTOR = 10;
+        private List<Vector2> vertices = new List<Vector2>();
+        private List<Vector2> UVs = new List<Vector2>();
+        private List<Vector2> jointsPosition = new List<Vector2>();
+        private List<int> joints = new List<int>();
+        private List<float> angles = new List<float>();
+        private List<float> lengths = new List<float>();
+        public Vector2 Relative { get; set; }
+        public Boolean Collide { get; set; }
+        public String PartName { get; set; }
 
-        public Polygon getPolygon(Vector2 offset)
+        public List<int> Joints { get { return joints.ToList(); } }
+        public List<float> Angles { get { return angles.ToList(); } }
+        public List<float> Lengths { get { return lengths.ToList(); } }
+
+        public List<Vector2> Vertices { get { return vertices.ToList(); } }
+        public List<Vector2> SUVs { get { return UVs.ToList(); } }
+
+        public Part(String name)
+        {
+            PartName = name;
+        }
+
+        public Polygon getPolygonForRender(Point offset)
         {
             Polygon polygon = new Polygon();
             polygon.Stroke = Brushes.Black;
             polygon.StrokeThickness = 3;
-            foreach (Vector2 vector in Vertices)
+            foreach (Vector2 vector in vertices)
             {
-                polygon.Points.Add(new System.Windows.Point(vector.X * 50 + offset.X, vector.Y * 50 + offset.Y));
+                polygon.Points.Add(new System.Windows.Point(vector.X * GUI_SCALE_FACTOR + offset.X, vector.Y * GUI_SCALE_FACTOR + offset.Y));
             }
             return polygon;
         }
 
-        public void setAnglesJointsLengths(int numberOfSides, float[] angles, float[] lengths, List<int> joints)
+        public List<Point> getJointPositionsForRender(Point offset)
         {
-            Joints = joints;
-            UVs = Enumerable.Repeat(new Vector2(), angles.Length).ToList();
-            Vertices.Clear();
-            Vertices.Add(new Vector2());
+            return jointsPosition.Select(vector => new Point(vector.X * GUI_SCALE_FACTOR + offset.X, vector.Y * GUI_SCALE_FACTOR + offset.Y)).ToList();
+        }
+
+        public void setAnglesJointsLengths(int numberOfSides, List<float> pAngles, List<float> pLengths, List<int> pJoints)
+        {
+            this.angles = pAngles;
+            this.lengths = pLengths;
+            this.joints = pJoints;
+            this.UVs = Enumerable.Repeat(new Vector2(), GetNumberOfSides()).ToList();
+            vertices.Clear();
+            vertices.Add(new Vector2());
             float lastAngle = 0;
             Vector2 lastVector2 = new Vector2();
             for (int i = 0; i < numberOfSides; i++)
@@ -49,59 +71,101 @@ namespace ModelCreator
 
                 lastVector2 = new Vector2(directionalVector.X * ratio + lastVector2.X, directionalVector.Y * ratio + lastVector2.Y);
 
-                if (i == numberOfSides - 1 && Math.Round(lastVector2.X) == 0 && Math.Round(lastVector2.Y) == 0)
-                {
+                if (i != numberOfSides - 1 || Math.Round(lastVector2.X) != 0 || Math.Round(lastVector2.Y) != 0)
+                    vertices.Add(lastVector2);
 
-                }
-                else
-                {
-                    Vertices.Add(lastVector2);
-                }
 
                 lastAngle += angles[i];
             }
 
-            DrawJoints.Clear();
-
             joints.Add(0);
+            
+            verifyListsIntegrity();
 
-            for (int i = 0; i < Vertices.Count && Vertices.Count == joints.Count; i++)
-            {
-                Vector2 local = Vertices[i];
-                Vector2 nextLocal = new Vector2();
-                if (i + 2 > Vertices.Count)
-                    nextLocal = Vertices[0];
-                else
-                    nextLocal = Vertices[i + 1];
-                Vector2 dif = nextLocal - local;
-                Vector2 onePeace = new Vector2(dif.X / (joints[i] + 1), dif.Y / (joints[i] + 1));
-                for (int jointNumber = 0; jointNumber < joints[i]; jointNumber++)
-                {
-                    DrawJoints.Add(new Vector2(onePeace.X * (jointNumber + 1) + local.X, onePeace.Y * (jointNumber + 1) + local.Y));
-                }
-            }
+            calculateJointsPosition();
         }
 
         public void setFromJSON(Vector2[] coords, Vector2[] uvs, int[] joints)
         {
-            Vertices.Clear();
+            vertices.Clear();
             UVs.Clear();
-            Joints.Clear();
+            this.joints.Clear();
 
 
             UVs.AddRange(uvs);
-            Joints.AddRange(joints);
+            this.joints.AddRange(joints);
 
 
             for (int i = 0; i < coords.Length; i++)
             {
                 Vector2 vec1 = coords.noOutOfBounds(i) - coords.noOutOfBounds(i + 1);
 
-                Lengths.Add((float)Math.Sqrt(Math.Pow(vec1.X, 2) + Math.Pow(vec1.Y, 2)));
+                lengths.Add((float)Math.Sqrt(Math.Pow(vec1.X, 2) + Math.Pow(vec1.Y, 2)));
 
                 Vector2 vec2 = coords.noOutOfBounds(i + 2) - coords.noOutOfBounds(i + 1);
 
-                Angles.Add(VectorUtil.AngleBetweenVector2(vec1, vec2));
+                angles.Add(VectorUtil.AngleBetweenVector2(vec1, vec2));
+            }
+
+            vertices = coords.ToList();
+
+            verifyListsIntegrity();
+
+            calculateJointsPosition();
+        }
+
+        public override string ToString()
+        {
+            return PartName;
+        }
+
+        public Part Clone()
+        {
+            return new Part(PartName + " (copy)")
+            {
+                vertices = vertices.ToList(),
+                UVs = UVs.ToList(),
+                joints = joints.ToList(),
+                angles = angles.ToList(),
+                lengths = lengths.ToList(),
+                Relative = Relative,
+                Collide = Collide,
+                jointsPosition = jointsPosition.ToList()
+            };
+        }
+
+        public int GetNumberOfSides()
+        {
+            return vertices.Count;
+        }
+
+        private void verifyListsIntegrity()
+        {
+            int sides = GetNumberOfSides();
+
+            if (sides != angles.Count || sides != UVs.Count || sides != joints.Count || sides != lengths.Count)
+            {
+                throw new InconsistentListsCountException();
+            }
+        }
+
+        private void calculateJointsPosition()
+        {
+            jointsPosition.Clear();
+            for (int i = 0; i < vertices.Count && vertices.Count == joints.Count; i++)
+            {
+                Vector2 local = vertices[i];
+                Vector2 nextLocal = new Vector2();
+                if (i + 2 > vertices.Count)
+                    nextLocal = vertices[0];
+                else
+                    nextLocal = vertices[i + 1];
+                Vector2 dif = nextLocal - local;
+                Vector2 onePeace = new Vector2(dif.X / (joints[i] + 1), dif.Y / (joints[i] + 1));
+                for (int jointNumber = 0; jointNumber < joints[i]; jointNumber++)
+                {
+                    jointsPosition.Add(new Vector2(onePeace.X * (jointNumber + 1) + local.X, onePeace.Y * (jointNumber + 1) + local.Y));
+                }
             }
         }
     }

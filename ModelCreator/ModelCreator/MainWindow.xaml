@@ -47,8 +47,16 @@
         </Grid>
         <Label x:Name="label1" Content="Move part from center" HorizontalAlignment="Left" Height="25" Margin="999,169,0,0" VerticalAlignment="Top" Width="157"/>
         <ScrollViewer HorizontalAlignment="Left" Margin="10,10,0,41" Width="153">
-            <ListView x:Name="partList_listView"/>
+            <ListView x:Name="partList_listView">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Remove" Click="RemoveSelectedPart_Click" />
+                        <MenuItem Header="Duplicate" Click="DuplicateSelectedPart_Click" />
+                    </ContextMenu>
+                </ListView.ContextMenu>
+            </ListView>
+
         </ScrollViewer>
-        <Button x:Name="addPart_button" Content="Add part" HorizontalAlignment="Left" Height="26" Margin="10,653,0,0" VerticalAlignment="Top" Width="153" Click="addPart_button_Click"/>
+        <Button x:Name="addPart_button" Content="Add part" HorizontalAlignment="Left" Height="25" Margin="10,653,0,0" VerticalAlignment="Top" Width="153" Click="addPart_button_Click"/>
     </Grid>
 </Window>

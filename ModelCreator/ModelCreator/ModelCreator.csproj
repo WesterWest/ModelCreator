@@ -86,6 +86,7 @@
     <Compile Include="CleverBox.xaml.cs">
       <DependentUpon>CleverBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="InconsistentListsCountException.cs" />
     <Compile Include="JArraySerializer.cs" />
     <Compile Include="JSONUtil.cs" />
     <Compile Include="NoOutOfBounds.cs" />

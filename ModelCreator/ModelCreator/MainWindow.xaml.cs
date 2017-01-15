@@ -33,7 +33,7 @@ namespace ModelCreator
             InitializeComponent();
             partList_listView.ItemsSource = parts;
             partList_listView.SelectionChanged += (kana, windowsJeSracka) => changeSelected((Part)partList_listView.SelectedItem);
-            addPart(new Part());
+            addPart(new Part("Part 0"));
             sides_textBox.ContentChanged += UpdateSides;
             /*
             Vector2 vec1 = new Vector2(1, 0);
@@ -43,6 +43,180 @@ namespace ModelCreator
         }
 
 
+
+
+
+        private void UpdateSides(TextBox txBx)
+        {
+            int sidesParsed;
+            if (!int.TryParse(txBx.Text, out sidesParsed) && sidesParsed > 2)
+            {
+                txBx.Text = "3";
+            }
+
+            
+
+            loadDataFromGUItoSelectedPart();
+            rerenderParts();
+        }
+
+
+        private void loadDataFromGUItoSelectedPart()
+        {
+            List<float> angles = new List<float>();
+            List<int> joints = new List<int>();
+            List<float> lengths = new List<float>();
+
+            foreach (UIElement element in corners_stackPanel.Children)
+            {
+                Grid grid = (Grid)element;
+                DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
+                DoubleUpDown length = (DoubleUpDown)grid.Children[1];
+                IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
+                angles.Add((float)angle.Value);
+                joints.Add((int)joint.Value);
+                lengths.Add((float)length.Value);
+            }
+
+            parts[partIndex].setAnglesJointsLengths(angles.Count, angles, lengths, joints);
+        }
+
+        private void loadDataFromSelectedPartToGUI()
+
+        {
+            int sides = parts[partIndex].GetNumberOfSides();
+
+            Boolean addMode = sides - corners_stackPanel.Children.Count > 0;
+
+            int timesRun = Math.Abs(sides - corners_stackPanel.Children.Count);
+
+            for (int i = 0; i < timesRun; i++)
+            {
+                if (addMode)
+                {
+                    Grid grid = new Grid();
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+                    grid.ColumnDefinitions.Add(new ColumnDefinition());
+
+                    DoubleUpDown angle_textBox = new DoubleUpDown();
+                    angle_textBox.DefaultValue = 0;
+                    DoubleUpDown length_textBox = new DoubleUpDown();
+                    length_textBox.DefaultValue = 0;
+                    IntegerUpDown joints_textBox = new IntegerUpDown();
+                    joints_textBox.DefaultValue = 0;
+
+                    angle_textBox.ValueChanged += (penis, args) =>
+                    {
+                        rerenderParts();
+                    };
+                    length_textBox.ValueChanged += (kana, args) =>
+                    {
+                        rerenderParts();
+                    };
+                    joints_textBox.ValueChanged += (john_cena, args) =>
+                    {
+                        rerenderParts();
+                    };
+
+                    angle_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    length_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    joints_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+
+                    Grid.SetColumn(angle_textBox, 0);
+                    Grid.SetColumn(length_textBox, 1);
+                    Grid.SetColumn(joints_textBox, 2);
+
+                    angle_textBox.Value = 30;
+                    length_textBox.Value = 50;
+                    joints_textBox.Value = 0;
+
+                    grid.Children.Add(angle_textBox);
+                    grid.Children.Add(length_textBox);
+                    grid.Children.Add(joints_textBox);
+
+                    corners_stackPanel.Children.Add(grid);
+                }
+                else
+                {
+                    corners_stackPanel.Children.RemoveAt(corners_stackPanel.Children.Count - 1);
+                }
+            }
+        }
+
+        private void rerenderParts()
+        {
+            canvas.Children.Clear();
+            foreach (Part part in parts)
+            {
+                Polygon polygon = part.getPolygonForRender(new Point(canvas.ActualWidth / 2, canvas.ActualHeight / 2));
+
+                if (part == parts[partIndex])
+                    polygon.Stroke = Brushes.Coral;
+                else
+                    polygon.Stroke = Brushes.Black;
+
+                canvas.Children.Add(polygon);
+
+                foreach (Point local in part.getJointPositionsForRender(new Point(canvas.ActualWidth / 2, canvas.ActualHeight / 2)))
+                {
+                    Ellipse ellipse = new Ellipse();
+                    ellipse.Stroke = Brushes.Red;
+                    ellipse.StrokeThickness = 2;
+                    ellipse.Width = 5;
+                    ellipse.Height = 5;
+                    ellipse.Fill = Brushes.Red;
+                    ellipse.Margin = new Thickness(local.X, local.Y, 0, 0);
+                    canvas.Children.Add(ellipse);
+                }
+            }
+        }
+
+        private void addPart(Part part)
+        {
+            parts.Add(part);
+        }
+
+        private void removePart(Part part)
+        {
+            parts.Remove(part);
+        }
+
+        private void changeSelected(Part part)
+        {
+            partIndex = parts.IndexOf(part);
+            rerenderParts();
+        }
+
+
+
+
+        private void fileSelector_button_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.InitialDirectory = @"F:\OneDrive\Documents\GitHub\Kana\Assets\VanillaModule\models";
+            dialog.Filter = "model JSON file (*.json)|*.JSON";
+            if (dialog.ShowDialog().Value)
+            {
+                path_textBox.Text = dialog.FileName;
+                loadButton_Click(null, null);
+            }
+        }
+
+        private void addPart_button_Click(object sender, RoutedEventArgs e)
+        {
+            addPart(new Part("Part " + parts.Count));
+        }
+
+        private void RemoveSelectedPart_Click(object sender, RoutedEventArgs e)
+        {
+            removePart(parts[partIndex]);
+        }
+
+        private void DuplicateSelectedPart_Click(object sender, RoutedEventArgs e)
+        {
+            addPart(parts[partIndex].Clone());
+        }
 
         private void magicButton_Click(object sender, RoutedEventArgs e)
         {
@@ -54,7 +228,7 @@ namespace ModelCreator
                 JObject JPart = new JObject();
                 JArray JVertices = JArraySerializer.SerializeVector2(part.Vertices);
                 JArray JJoints = JArraySerializer.SerializeIntegeer(part.Joints);
-                JArray JUVs = JArraySerializer.SerializeVector2(part.UVs);
+                JArray JUVs = JArraySerializer.SerializeVector2(part.SUVs);
 
                 JPart.Add("vertices", JVertices);
                 JPart.Add("uvs", JUVs);
@@ -119,209 +293,19 @@ namespace ModelCreator
                     jointIndex++;
                 }
 
-                Part part = new Part();
+                String partName = JSONUtil.ReadWithDefaultValue(partObject, "name", "Part " + parts.Count);
+
+                Part part = new Part(partName);
                 part.setFromJSON(vertices, uvs, joints);
 
                 addPart(part);
 
                 sides_textBox.Text = jVertices.Count.ToString();
 
-                int i = 0;
-                foreach (UIElement element in corners_stackPanel.Children)
-                {
-                    Grid grid = (Grid)element;
-                    DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
-                    DoubleUpDown length = (DoubleUpDown)grid.Children[1];
-                    IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
-                    angle.Value = part.Angles[i];
-                    length.Value = part.Lengths[i];
-                    joint.Value = part.Joints[i];
-                    i++;
-                }
+                loadDataFromSelectedPartToGUI();
 
-
-                canvas.Children.Clear();
-                canvas.Children.Add(parts[partIndex].getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2)));
-                foreach (Vector2 local in parts[partIndex].DrawJoints)
-                {
-                    Ellipse ellipse = new Ellipse();
-                    ellipse.Stroke = Brushes.Red;
-                    ellipse.StrokeThickness = 2;
-                    ellipse.Width = 5;
-                    ellipse.Height = 5;
-                    ellipse.Fill = Brushes.Red;
-                    ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
-                    canvas.Children.Add(ellipse);
-                }
+                rerenderParts();
             }
-        }
-
-        private void UpdateSides(TextBox txBx)
-        {
-            int sidesParsed;
-            if (int.TryParse(txBx.Text, out sidesParsed) && sidesParsed > 2)
-            {
-                UpdatePolygon();
-            }
-            else
-            {
-                txBx.Text = "3";
-                UpdatePolygon();
-            }
-
-            Boolean addMode = sidesParsed - corners_stackPanel.Children.Count > 0;
-
-            int timesRun = Math.Abs(sidesParsed - corners_stackPanel.Children.Count);
-
-            for (int i = 0; i < timesRun; i++)
-            {
-                if (addMode)
-                {
-                    Grid grid = new Grid();
-                    grid.ColumnDefinitions.Add(new ColumnDefinition());
-                    grid.ColumnDefinitions.Add(new ColumnDefinition());
-                    grid.ColumnDefinitions.Add(new ColumnDefinition());
-
-                    DoubleUpDown angle_textBox = new DoubleUpDown();
-                    angle_textBox.DefaultValue = 0;
-                    DoubleUpDown length_textBox = new DoubleUpDown();
-                    length_textBox.DefaultValue = 0;
-                    IntegerUpDown joints_textBox = new IntegerUpDown();
-                    joints_textBox.DefaultValue = 0;
-
-                    angle_textBox.ValueChanged += (penis, args) =>
-                    {
-                        UpdatePolygon();
-                    };
-                    length_textBox.ValueChanged += (kana, args) =>
-                    {
-                        UpdatePolygon();
-                    };
-                    joints_textBox.ValueChanged += (john_cena, args) =>
-                    {
-                        UpdatePolygon();
-                    };
-
-                    angle_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    length_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    joints_textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-
-                    Grid.SetColumn(angle_textBox, 0);
-                    Grid.SetColumn(length_textBox, 1);
-                    Grid.SetColumn(joints_textBox, 2);
-
-                    angle_textBox.Value = 30;
-                    length_textBox.Value = 50;
-                    joints_textBox.Value = 0;
-
-                    grid.Children.Add(angle_textBox);
-                    grid.Children.Add(length_textBox);
-                    grid.Children.Add(joints_textBox);
-
-                    corners_stackPanel.Children.Add(grid);
-                }
-                else
-                {
-                    corners_stackPanel.Children.RemoveAt(corners_stackPanel.Children.Count - 1);
-                }
-            }
-        }
-
-        private void UpdatePolygon()
-        {
-            List<float> angles = new List<float>();
-            List<int> joints = new List<int>();
-            List<float> lengths = new List<float>();
-
-            foreach (UIElement element in corners_stackPanel.Children)
-            {
-                Grid grid = (Grid)element;
-                DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
-                DoubleUpDown length = (DoubleUpDown)grid.Children[1];
-                IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
-                angles.Add((float)angle.Value);
-                joints.Add((int)joint.Value);
-                lengths.Add((float)length.Value);
-            }
-
-            parts[partIndex].setAnglesJointsLengths(angles.Count, angles.ToArray(), lengths.ToArray(), joints);
-
-
-            if (corners_stackPanel.Children.Count > 0 && parts[partIndex].Vertices.Count > 2)
-            {
-                Grid gridLast = (Grid)corners_stackPanel.Children[corners_stackPanel.Children.Count - 1];
-
-                DoubleUpDown angleLast = (DoubleUpDown)gridLast.Children[0];
-                DoubleUpDown lengthLast = (DoubleUpDown)gridLast.Children[1];
-                IntegerUpDown jointLast = (IntegerUpDown)gridLast.Children[2];
-
-                Vector2 firstVector = parts[partIndex].Vertices[1];
-                Vector2 secondVector = parts[partIndex].Vertices.Last();
-            }
-
-            rerenderParts();
-
-        }
-
-        private void rerenderParts()
-        {
-            canvas.Children.Clear();
-            foreach (Part part in parts)
-            {
-                Polygon polygon = part.getPolygon(new Vector2((float)canvas.ActualWidth / 2, (float)canvas.ActualHeight / 2));
-
-                if (part == parts[partIndex])
-                    polygon.Stroke = Brushes.Coral;
-                else
-                    polygon.Stroke = Brushes.Black;
-
-                canvas.Children.Add(polygon);
-
-                foreach (Vector2 local in part.DrawJoints)
-                {
-                    Ellipse ellipse = new Ellipse();
-                    ellipse.Stroke = Brushes.Red;
-                    ellipse.StrokeThickness = 2;
-                    ellipse.Width = 5;
-                    ellipse.Height = 5;
-                    ellipse.Fill = Brushes.Red;
-                    ellipse.Margin = new Thickness(local.X + ((float)canvas.ActualWidth / 2), local.Y + ((float)canvas.ActualHeight / 2), 0, 0);
-                    canvas.Children.Add(ellipse);
-                }
-            }
-        }
-
-        private void fileSelector_button_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.InitialDirectory = @"F:\OneDrive\Documents\GitHub\Kana\Assets\VanillaModule\models";
-            dialog.Filter = "model JSON file (*.json)|*.JSON";
-            if (dialog.ShowDialog().Value)
-            {
-                path_textBox.Text = dialog.FileName;
-                loadButton_Click(null, null);
-            }
-        }
-
-        private void addPart(Part part)
-        {
-            parts.Add(part);
-        }
-
-        private void removePart(Part part)
-        {
-            parts.Remove(part);
-        }
-
-        private void changeSelected(Part part)
-        {
-            partIndex = parts.IndexOf(part);
-            rerenderParts();
-        }
-
-        private void addPart_button_Click(object sender, RoutedEventArgs e)
-        {
-            addPart(new Part());
         }
     }
 }
