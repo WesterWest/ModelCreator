@@ -26,7 +26,21 @@ namespace ModelCreator
             Y = y;
         }
 
-        public static Vector2 operator - (Vector2 first, Vector2 second)
+
+
+        public float GetLength()
+        {
+            return (float)Math.Sqrt(X * X + Y * Y);
+        }
+
+        public static float AngleBetween(Vector2 vec1, Vector2 vec2)
+        {
+            float angle = (float)Math.Abs(Math.Atan2(vec1.Y, vec1.X) * 180 / Math.PI -
+                                Math.Atan2(vec2.Y, vec2.X) * 180 / Math.PI);
+            return angle;
+        }
+
+        public static Vector2 operator -(Vector2 first, Vector2 second)
         {
             return new Vector2(first.X - second.X, first.Y - second.Y);
         }

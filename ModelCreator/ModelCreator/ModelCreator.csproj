@@ -93,7 +93,6 @@
     <Compile Include="PropertyReadException.cs" />
     <Compile Include="UnsupportedTokenException.cs" />
     <Compile Include="Vector2.cs" />
-    <Compile Include="VectorUtil.cs" />
     <Page Include="CleverBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -32,32 +32,22 @@ namespace ModelCreator
         {
             InitializeComponent();
             partList_listView.ItemsSource = parts;
-            partList_listView.SelectionChanged += (kana, windowsJeSracka) => changeSelected((Part)partList_listView.SelectedItem);
-            addPart(new Part("Part 0"));
-            sides_textBox.ContentChanged += UpdateSides;
-            /*
-            Vector2 vec1 = new Vector2(1, 0);
-            Vector2 vec2 = new Vector2(0.2f, 1);
-            float solution = VectorUtil.AngleBetweenVector2(vec1, vec2);
-            */
-        }
-
-
-
-
-
-        private void UpdateSides(TextBox txBx)
-        {
-            int sidesParsed;
-            if (!int.TryParse(txBx.Text, out sidesParsed) && sidesParsed > 2)
+            partList_listView.SelectionChanged += (kana, windowsJeSracka) =>
             {
-                txBx.Text = "3";
-            }
+                if (partList_listView.SelectedItem != null) changeSelected((Part)partList_listView.SelectedItem);
+            };
 
-            
-
-            loadDataFromGUItoSelectedPart();
-            rerenderParts();
+            addPart(new Part("Part 0"));
+            sides_textBox.ContentChanged += (penis) =>
+            {
+                int i;
+                if (Int32.TryParse(penis.Text, out i))
+                {
+                    rerenderTextBoxesOfPartSides(i);
+                    loadDataFromGUItoSelectedPart();
+                    rerenderParts();
+                }
+            };
         }
 
 
@@ -81,10 +71,9 @@ namespace ModelCreator
             parts[partIndex].setAnglesJointsLengths(angles.Count, angles, lengths, joints);
         }
 
-        private void loadDataFromSelectedPartToGUI()
+        private void rerenderTextBoxesOfPartSides(int sides)
 
         {
-            int sides = parts[partIndex].GetNumberOfSides();
 
             Boolean addMode = sides - corners_stackPanel.Children.Count > 0;
 
@@ -100,22 +89,32 @@ namespace ModelCreator
                     grid.ColumnDefinitions.Add(new ColumnDefinition());
 
                     DoubleUpDown angle_textBox = new DoubleUpDown();
-                    angle_textBox.DefaultValue = 0;
+
                     DoubleUpDown length_textBox = new DoubleUpDown();
-                    length_textBox.DefaultValue = 0;
+
                     IntegerUpDown joints_textBox = new IntegerUpDown();
+
+                    angle_textBox.DefaultValue = 0;
+                    length_textBox.DefaultValue = 0;
                     joints_textBox.DefaultValue = 0;
+
+                    angle_textBox.Value = 30;
+                    length_textBox.Value = 10;
+                    joints_textBox.Value = 0;
 
                     angle_textBox.ValueChanged += (penis, args) =>
                     {
+                        loadDataFromGUItoSelectedPart();
                         rerenderParts();
                     };
                     length_textBox.ValueChanged += (kana, args) =>
                     {
+                        loadDataFromGUItoSelectedPart();
                         rerenderParts();
                     };
                     joints_textBox.ValueChanged += (john_cena, args) =>
                     {
+                        loadDataFromGUItoSelectedPart();
                         rerenderParts();
                     };
 
@@ -127,10 +126,6 @@ namespace ModelCreator
                     Grid.SetColumn(length_textBox, 1);
                     Grid.SetColumn(joints_textBox, 2);
 
-                    angle_textBox.Value = 30;
-                    length_textBox.Value = 50;
-                    joints_textBox.Value = 0;
-
                     grid.Children.Add(angle_textBox);
                     grid.Children.Add(length_textBox);
                     grid.Children.Add(joints_textBox);
@@ -141,6 +136,27 @@ namespace ModelCreator
                 {
                     corners_stackPanel.Children.RemoveAt(corners_stackPanel.Children.Count - 1);
                 }
+            }
+        }
+
+        private void loadDataFromSelectedPartToGUI()
+        {
+            rerenderTextBoxesOfPartSides(parts[partIndex].GetNumberOfSides());
+
+            List<float> angles = parts[partIndex].Angles;
+            List<int> joints = parts[partIndex].Joints;
+            List<float> lengths = parts[partIndex].Lengths;
+
+            int i = 0;
+            foreach (UIElement element in corners_stackPanel.Children)
+            {
+                Grid grid = (Grid)element;
+                DoubleUpDown angle = (DoubleUpDown)grid.Children[0];
+                DoubleUpDown length = (DoubleUpDown)grid.Children[1];
+                IntegerUpDown joint = (IntegerUpDown)grid.Children[2];
+                angle.Text = angles[i].ToString();
+                length.Text = lengths[i].ToString();
+                joint.Text = joints[i].ToString();
             }
         }
 
@@ -185,6 +201,7 @@ namespace ModelCreator
         private void changeSelected(Part part)
         {
             partIndex = parts.IndexOf(part);
+            loadDataFromSelectedPartToGUI();
             rerenderParts();
         }
 
@@ -238,13 +255,12 @@ namespace ModelCreator
 
             jObject.Add("parts", partsArray);
 
-            JsonSerializer serializer = new JsonSerializer();
 
             using (StreamWriter sw = new StreamWriter(path_textBox.Text))
-            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                serializer.Serialize(writer, jObject);
+                sw.Write(JsonConvert.SerializeObject(jObject, Formatting.Indented));
             }
+
         }
 
         private void loadButton_Click(object sender, RoutedEventArgs e)
@@ -301,11 +317,9 @@ namespace ModelCreator
                 addPart(part);
 
                 sides_textBox.Text = jVertices.Count.ToString();
-
-                loadDataFromSelectedPartToGUI();
-
-                rerenderParts();
             }
+
+            changeSelected(parts.First());
         }
     }
 }

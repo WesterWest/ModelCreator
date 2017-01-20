@@ -56,30 +56,43 @@ namespace ModelCreator
             this.angles = pAngles;
             this.lengths = pLengths;
             this.joints = pJoints;
-            this.UVs = Enumerable.Repeat(new Vector2(), GetNumberOfSides()).ToList();
+            
             vertices.Clear();
             vertices.Add(new Vector2());
             float lastAngle = 0;
             Vector2 lastVector2 = new Vector2();
+   
             for (int i = 0; i < numberOfSides; i++)
             {
                 Vector2 directionalVector = new Vector2((float)Math.Cos((lastAngle + angles[i]) / 180 * Math.PI),
                                         (float)Math.Sin((lastAngle + angles[i]) / 180 * Math.PI));
 
-                float directionalVectorLength = (float)Math.Sqrt(directionalVector.X * directionalVector.X + directionalVector.Y * directionalVector.Y);
-                float ratio = lengths[i] / directionalVectorLength;
+                float ratio = lengths[i] / directionalVector.GetLength();
 
                 lastVector2 = new Vector2(directionalVector.X * ratio + lastVector2.X, directionalVector.Y * ratio + lastVector2.Y);
 
-                if (i != numberOfSides - 1 || Math.Round(lastVector2.X) != 0 || Math.Round(lastVector2.Y) != 0)
+                if (i == numberOfSides - 1 && (Math.Round(lastVector2.X) == 0 || Math.Round(lastVector2.Y) == 0))
+                {
+                    
+                }
+                else if (i == numberOfSides - 1 && !(Math.Round(lastVector2.X) == 0 || Math.Round(lastVector2.Y) == 0))
+                {
                     vertices.Add(lastVector2);
+                    angles.Add(Vector2.AngleBetween(lastVector2, vertices.First()));
+                    lengths.Add(lastVector2.GetLength());
+                    joints.Add(0);
+                }
+                else
+                {
+                    vertices.Add(lastVector2);
+                }
 
 
                 lastAngle += angles[i];
             }
 
-            joints.Add(0);
-            
+            this.UVs = Enumerable.Repeat(new Vector2(), GetNumberOfSides()).ToList();
+
             verifyListsIntegrity();
 
             calculateJointsPosition();
@@ -104,7 +117,7 @@ namespace ModelCreator
 
                 Vector2 vec2 = coords.noOutOfBounds(i + 2) - coords.noOutOfBounds(i + 1);
 
-                angles.Add(VectorUtil.AngleBetweenVector2(vec1, vec2));
+                angles.Add(Vector2.AngleBetween(vec1, vec2));
             }
 
             vertices = coords.ToList();
