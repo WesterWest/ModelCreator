@@ -48,5 +48,10 @@ namespace ModelCreator
                 ContentChanged?.Invoke(textBox);
             }
         }
+
+        public void setTextEventBypass(String text)
+        {
+            textBox.Text = text;
+        }
     }
 }
