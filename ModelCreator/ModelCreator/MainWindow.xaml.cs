@@ -49,6 +49,13 @@ namespace ModelCreator
                     rerenderParts();
                 }
             };
+
+            rellativeX_DoubleUpDown.DefaultValue = 0;
+            rellativeY_DoubleUpDown.DefaultValue = 0;
+
+            rellativeX_DoubleUpDown.ValueChanged += (temp, temp2) => { loadDataFromGUItoSelectedPart(); };
+            rellativeX_DoubleUpDown.ValueChanged += (temp, temp2) => { loadDataFromGUItoSelectedPart(); };
+            collide_checkBox.Click += (temp, temp2) => { loadDataFromGUItoSelectedPart(); };
         }
 
 
@@ -72,6 +79,10 @@ namespace ModelCreator
 
                 Debug.WriteLine(angle.Value + " " + joint.Value + " " + length.Value);
             }
+
+            parts[partIndex].Relative = new Vector2((float)rellativeX_DoubleUpDown.Value, (float)rellativeY_DoubleUpDown.Value);
+
+            parts[partIndex].Collide = collide_checkBox.IsChecked.Value;
 
             parts[partIndex].setAnglesJointsLengths(angles.Count, angles, lengths, joints);
         }
@@ -154,6 +165,10 @@ namespace ModelCreator
             List<int> joints = parts[partIndex].Joints;
             List<float> lengths = parts[partIndex].Lengths;
 
+            rellativeX_DoubleUpDown.Value = parts[partIndex].Relative.X;
+            rellativeY_DoubleUpDown.Value = parts[partIndex].Relative.Y;
+            collide_checkBox.IsChecked = parts[partIndex].Collide;
+
             for (int i = 0; i < parts[partIndex].GetNumberOfSides(); i++)
             {
                 Grid grid = new Grid();
@@ -212,7 +227,7 @@ namespace ModelCreator
             canvas.Children.Clear();
             foreach (Part part in parts)
             {
-                Polygon polygon = part.getPolygonForRender(new Point(canvas.ActualWidth / 2, canvas.ActualHeight / 2));
+                Polygon polygon = part.getPolygonForRender(new Point(canvas.ActualWidth / 2 + part.Relative.X, canvas.ActualHeight / 2 + part.Relative.Y));
 
                 if (part == parts[partIndex])
                     polygon.Stroke = Brushes.Coral;
@@ -221,7 +236,7 @@ namespace ModelCreator
 
                 canvas.Children.Add(polygon);
 
-                foreach (Point local in part.getJointPositionsForRender(new Point(canvas.ActualWidth / 2, canvas.ActualHeight / 2)))
+                foreach (Point local in part.getJointPositionsForRender(new Point(canvas.ActualWidth / 2 + part.Relative.X, canvas.ActualHeight / 2 + part.Relative.Y)))
                 {
                     Ellipse ellipse = new Ellipse();
                     ellipse.Stroke = Brushes.Red;
