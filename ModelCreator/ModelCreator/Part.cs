@@ -91,6 +91,8 @@ namespace ModelCreator
                 lastAngle += angles[i];
             }
 
+
+            //tady je problem, neni nactena zadna strana ale jeden vektor. Vertices = 1 => UVs = 1 ale zbytek = 0 bcs cornersStackPanel.Childern = 0
             this.UVs = Enumerable.Repeat(new Vector2(), GetNumberOfSides()).ToList();
 
             verifyListsIntegrity();
