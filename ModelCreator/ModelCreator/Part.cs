@@ -56,12 +56,15 @@ namespace ModelCreator
             this.angles = pAngles;
             this.lengths = pLengths;
             this.joints = pJoints;
-            
+
             vertices.Clear();
-            vertices.Add(new Vector2());
+
+            if (numberOfSides > 0)
+                vertices.Add(new Vector2());
+
             float lastAngle = 0;
             Vector2 lastVector2 = new Vector2();
-   
+
             for (int i = 0; i < numberOfSides; i++)
             {
                 Vector2 directionalVector = new Vector2((float)Math.Cos((lastAngle + angles[i]) / 180 * Math.PI),
@@ -73,7 +76,7 @@ namespace ModelCreator
 
                 if (i == numberOfSides - 1 && (Math.Round(lastVector2.X) == 0 || Math.Round(lastVector2.Y) == 0))
                 {
-                    
+
                 }
                 else if (i == numberOfSides - 1 && !(Math.Round(lastVector2.X) == 0 || Math.Round(lastVector2.Y) == 0))
                 {
@@ -91,8 +94,6 @@ namespace ModelCreator
                 lastAngle += angles[i];
             }
 
-
-            //tady je problem, neni nactena zadna strana ale jeden vektor. Vertices = 1 => UVs = 1 ale zbytek = 0 bcs cornersStackPanel.Childern = 0
             this.UVs = Enumerable.Repeat(new Vector2(), GetNumberOfSides()).ToList();
 
             verifyListsIntegrity();
